@@ -1,0 +1,6 @@
+$dev_name_t (enum(ds18b20, mpu6050)) //strange
+/* sample devs */
+//zazaza
+$sen_unit_t (enum(C, hPa, "     %")) /*temp&press*/
+$sensor:{ "sen type": $sen_type_t, val: [] }
+// omg
