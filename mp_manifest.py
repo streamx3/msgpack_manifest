@@ -8,18 +8,58 @@ def schema2dict(string):
     # TODO imeplement
 
 
-def __substrac_morpheme_name(string):
-    rv = ''
-    #TODO go study regexes and return here
+def __dump_pydict(dic, depth=0):
+    prefix = ''.join(['|' for i in range(depth)])
+    # print(prefix + '{')
+    for k in dic:
+        if type(dic[k]) == dict:
+            print(prefix + k)
+            __dump_pydict(dic[k], depth+1)
+        else:
+            print(prefix + str(k) + ':' + str(dic[k]))
+    # print(prefix + '}')
+
+
+def __map_depth(string):
+    rv = []
+    depth = 0
+    for i in range(len(string)):
+        if string[i] == '{':
+            depth += 1
+        rv.append(depth)
+        if string[i] == '}':
+            depth -= 1
     return rv
 
 
+def __parse_morpheme(string):
+    # print(string[0] + ' - ' + string[-1:])
+    if not (string.startswith('{') and string.endswith('}')):
+        logging.ERROR('Invalid string "' + string + '"')
+    string = string[1:-1]
+    depth_arr = __map_depth(string)
+    # TODO imeplement me
+
+
 def __str2morphemes(string):
-    morphemes = string.split('$')
-    tmp = {}
+    regex_dictionary = r'[_,a-z,A-Z]{1}[_,a-z,A-Z,0-9]*\:{1}\{.*\}'
+    regex_definition = r'[_,a-z,A-Z]{1}[_,a-z,A-Z,0-9]*\:{1}\(.*\)'
+    morphemes = string.split('$')[1:]
+    dicts = {}
+    defs = {}
     for m in morphemes:
-        key = __substrac_morpheme_name(m)
-        tmp[key]: m[len(key)]
+        # key = __subtract_morpheme_name(m)
+        if re.match(regex_dictionary, m):
+            key = m.split(':')[0]
+            dicts[key] = m[len(key) + 1:]
+        elif re.match(regex_definition, m):
+            key = m.split(':')[0]
+            defs[key] = m[len(key) + 1:]
+
+    tmp = {'dicts': dicts, 'defs': defs}
+    print('TMP:')
+    __dump_pydict(tmp)
+    __parse_morpheme(dicts['sensor'])
     #TODO not fully implemented
 
 
@@ -136,6 +176,7 @@ def reads(string):
     else:
         raise SyntaxError('Give data is invalid!')
     logging.debug(string)
+    __str2morphemes(string)
 
 
 def readf(filename):

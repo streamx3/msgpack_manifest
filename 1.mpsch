@@ -1,32 +1,48 @@
-$dev_name_t (enum(ds18b20, mpu6050, mpu9250, nrf24l01, sx1278, esp07, lte_generic, gps_generic, analog_lux))
+$dev_name_t:(enum(ds18b20, mpu6050, mpu9250, nrf24l01, sx1278, esp07, lte_generic, gps_generic, analog_lux))
 
-$sen_type_t (enum(temp, humidity, atm_pressure, acceleration, gyro_val, magn_flux, altitude_deriv, lat, lon, lux, ir_lux, uv_lux))
+$sen_type_t:(enum(temp, humidity, atm_pressure, acceleration, gyro_val, magn_flux, altitude_deriv, lat, lon, lux, ir_lux, uv_lux))
 /* gyro, accel and magbn comes as an array of 3 numbers */
 
-$sen_unit_t (enum(UNDEFINED, C, '%', hPa, uT, G, latitude, longitude, m_above_0, lux))
+$sen_unit_t:(enum(UNDEFINED, C, '%', hPa, uT, G, latitude, longitude, m_above_0, lux))
 
-$sensor {
-    sen_type: $sen_type_t,
-    sen_unit: $sen_unit_t,
+$sensor:{
+    sen_type: @sen_type_t,
+    sen_unit: @sen_unit_t,
     val: [],
     delta_noise
 }
 
-$device {
-    uid: (uint64_t),
-    name: $dev_name_t,
-    wired_connection: (enum(i2c, spi, uart, gpio, 1wire))
-    sensor: [ $sensor ]
+$device:{
+    uid:(uint64_t),
+    name:@dev_name_t,
+    wired_connection:(enum(i2c, spi, uart, gpio, 1wire))
+    sensor:[ @sensor ],
+    tst1:{
+        tst2_void,
+        tst2_dict:{
+            tst3_void,
+            tst3_dict{
+                tst4_void,
+                tst4_dict:{
+                    tst5_void,
+                    tst5_int:(uint32_t)
+                },
+                tst4_int:(uint16_t)
+            },
+            tst3_int:(uint8_t)
+        },
+        tst2_int:(uint64_t),
+        tst2_arr:[]
+    }
 }
 
-$root { /*this is the very root of the dictionary*/
-    pkg_version: (uint8_t),
+$root:{ /*this is the very root of the dictionary*/
+    pkg_version:(uint8_t),
     source_ip,
     destination_ip,
-    mcu_id: (uint32_t),
-    firmware_version: (uint16_t),
-    package_type: (enum(create,update,delete)),
-    UNIX_time: (uint32_t),
-    payload: [ $sensors ]
+    mcu_id:(uint32_t),
+    firmware_version:(uint16_t),
+    package_type:(enum(create,update,delete)),
+    UNIX_time:(uint32_t),
+    payload:[ @devices ]
 }
-

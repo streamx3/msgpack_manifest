@@ -1,6 +1,7 @@
-$dev_name_t (enum(ds18b20, mpu6050)) //strange
+$dev_name_t:(enum(ds18b20, mpu6050)) //strange
 /* sample devs */
+$sen_type_t:(enum(temp, humidity, atm_pressure))
 //zazaza
-$sen_unit_t (enum(C, hPa, "     %")) /*temp&press*/
-$sensor:{ "sen type": $sen_type_t, val: [] }
+$sen_unit_t:(enum(C, hPa, "     %")) /*temp&press*/
+$sensor:{ "sen type": @sen_type_t, val: [] }
 // omg
