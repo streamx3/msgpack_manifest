@@ -15,7 +15,7 @@ $sensor:{
 $device:{
     uid:(uint64_t),
     name:@dev_name_t,
-    wired_connection:(enum(i2c, spi, uart, gpio, 1wire))
+    wired_connection:(enum(i2c, spi, uart, gpio, 1wire)),
     sensor:[ @sensor ],
     tst1:{
         tst2_void,

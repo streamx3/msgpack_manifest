@@ -10,14 +10,12 @@ def schema2dict(string):
 
 def __dump_pydict(dic, depth=0):
     prefix = ''.join(['|' for i in range(depth)])
-    # print(prefix + '{')
     for k in dic:
         if type(dic[k]) == dict:
             print(prefix + k)
             __dump_pydict(dic[k], depth+1)
         else:
             print(prefix + str(k) + ':' + str(dic[k]))
-    # print(prefix + '}')
 
 
 def __map_depth(string):
@@ -32,13 +30,33 @@ def __map_depth(string):
     return rv
 
 
-def __parse_morpheme(string):
-    # print(string[0] + ' - ' + string[-1:])
+def __split_morphemes(string):
+    i0 = i1 = 0
+    tmp = []
+    tmp_d = {}
     if not (string.startswith('{') and string.endswith('}')):
         logging.ERROR('Invalid string "' + string + '"')
     string = string[1:-1]
     depth_arr = __map_depth(string)
-    # TODO imeplement me
+    commas_arr = __occurences_exclusive(string, ',', ['"', '()'])
+    for c in commas_arr:
+        if depth_arr[c] == 0:
+            i0 = i1
+            i1 = c
+            itmp = 0 if i0 == 0 else i0 + 1
+            tmp.append(string[itmp:i1])
+    if not string.endswith(','):                # For dump C-like syntax
+        tmp.append(string[i1+1:len(string)])
+    for subs in tmp:
+        if ':' in subs:
+            i = subs.find(':')
+            k, v = subs[0:i], subs[i+1:len(subs)]
+            tmp_d[k] = v
+            if v[0] == '{' and v[-1:] == '}':
+                tmp_d[k] = __split_morphemes(v)
+        else:
+            tmp_d[subs] = None
+    return tmp_d
 
 
 def __str2morphemes(string):
@@ -55,11 +73,10 @@ def __str2morphemes(string):
         elif re.match(regex_definition, m):
             key = m.split(':')[0]
             defs[key] = m[len(key) + 1:]
-
-    tmp = {'dicts': dicts, 'defs': defs}
-    print('TMP:')
+    dicts = {k: __split_morphemes(dicts[k]) for k in dicts}
+    tmp = {'dicts': dicts, 'defs': defs, 'root': None}
     __dump_pydict(tmp)
-    __parse_morpheme(dicts['sensor'])
+    pass
     #TODO not fully implemented
 
 
@@ -71,13 +88,27 @@ def __occurences(string, substr):
     return __regex_list2list([n for n in re.finditer(substr, string)])
 
 
-def __occurences_exclusive(string, substr):
+# Resutns numberical locations of substr occurences of substr in string, except for the cases
+# when it's inside of a pair of exclchars. If exclchars do not match, they should be given as a
+# pair, for example: exclchars=['"', '{}', '[]']
+def __occurences_exclusive(string, substr, exclchars=['"']):
     rv = []
-    in_quotes = False
+    _in = {s: 0 for s in exclchars}
     for i in range(len(string)):
-        if string[i] == '"' and (i == 0 or string[i-1] != '\\'):
-            in_quotes = not in_quotes
-        if in_quotes:
+        in_exclchars = False
+        for k in _in:
+            if len(k) == 1:
+                if string[i] == k and (i == 0 or string[i-1] != '\\'):
+                    _in[k] = 0 if _in[k] == 1 else 1
+            if len(k) == 2:
+                if string[i] == k[0]:
+                    _in[k] += 1
+                if string[i] == k[1]:
+                    _in[k] -= 1
+        for k in _in:
+            if _in[k] > 0:
+                in_exclchars = True
+        if in_exclchars:
             pass
         elif string[i:].startswith(substr):
             rv.append(i)
