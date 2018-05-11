@@ -31,7 +31,7 @@ def __map_depth(string):
 
 
 def __split_morphemes(string):
-    i0 = i1 = 0
+    i1 = 0
     tmp = []
     tmp_d = {}
     if not (string.startswith('{') and string.endswith('}')):
@@ -74,10 +74,9 @@ def __str2morphemes(string):
             key = m.split(':')[0]
             defs[key] = m[len(key) + 1:]
     dicts = {k: __split_morphemes(dicts[k]) for k in dicts}
-    tmp = {'dicts': dicts, 'defs': defs, 'root': None}
-    __dump_pydict(tmp)
-    pass
-    #TODO not fully implemented
+    tmp = {'dicts': dicts, 'defs': defs}
+    # __dump_pydict(tmp)
+    return tmp
 
 
 def __regex_list2list(list):
@@ -185,7 +184,8 @@ def __clear_spaces(string):
     return tmp
 
 
-def __validate(string):
+# Check if number of opening and closing brackets, braces and parentheses is matching
+def __validate_matching_syms(string):
     rv = True
     matching_elements = [['[', ']'], ['(', ')'], ['{', '}']]
     for pair in matching_elements:
@@ -196,18 +196,48 @@ def __validate(string):
     return rv
 
 
+def __recursive_extract_variables(dictionary):
+    rv = []
+    if type(dictionary) is not dict:
+        return rv
+    for k in dictionary:
+        if type(dictionary[k]) == str and '@' in dictionary[k]:
+            substr = dictionary[k][dictionary[k].find('@') + 1:]
+
+            cut_syms = __occurences_exclusive(substr, ')') + \
+                       __occurences_exclusive(substr, '}') + \
+                       __occurences_exclusive(substr, ']')
+            cut_syms.sort()
+            if len(cut_syms) > 0:
+                substr = substr[:cut_syms[0]]
+            rv.append(substr)
+        elif type(dictionary[k]) == dict:
+            branch = __recursive_extract_variables(dictionary[k])
+            if len(branch) > 0:
+                rv += branch
+    return rv
+
+
+def __validate_variables(morphemes):
+    used_vars = __recursive_extract_variables(morphemes)
+    print(used_vars)
+    used_vars = {k: False for k in used_vars}
+    #TODO find user_vars in morphemes as keys!
+
+
 def reads(string):
     if type(string) != str:
         raise TypeError('Given ' + str(type(str)) + ' instead of str!')
     string = __process_comments(string)
     string = __clear_spaces(string)
-    # if __occurences_exclusive()
-    if __validate(string):
+    if __validate_matching_syms(string):
         logging.info('Give data is valid.')
     else:
         raise SyntaxError('Give data is invalid!')
     logging.debug(string)
-    __str2morphemes(string)
+    morphemes = __str2morphemes(string)
+    __validate_variables(morphemes)
+
 
 
 def readf(filename):
@@ -219,8 +249,3 @@ def readf(filename):
     with open(filename) as f:
         return reads(f.read())
 
-
-
-# class Schema:
-#     def __init__(self, string):
-#         self.
